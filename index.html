@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tienda Electrónica</title>
+    <style>
+      /* Aquí puedes agregar tu CSS */
+    </style>
+  </head>
+  <body>
+    <h1>Tienda Electrónica</h1>
+    <input type="text" id="search" placeholder="Buscar productos">
+    <button onclick="search()">Buscar</button>
+    <div id="product-list"></div>
+    <h2>Carrito de compras</h2>
+    <div id="cart"></div>
+
+    <script>
+      // Obtener la lista de productos al cargar la página
+    window.onload = getProducts;
+
+    // Función para obtener todos los productos
+    function getProducts() {
+    fetch('http://localhost:3000/products')
+        .then(response => response.json())
+        .then(products => {
+        const productList = document.getElementById('product-list');
+        productList.innerHTML = '';
+        for (let product of products) {
+            const productDiv = document.createElement('div');
+            productDiv.innerHTML = `
+            <h2>${product.name}</h2>
+            <p>${product.description}</p>
+            <p>${product.price}</p>
+            <button onclick="addToCart('${product._id}')">Añadir al carrito</button>
+            `;
+            productList.appendChild(productDiv);
+        }
+        });
+    }
+
+    // Función para buscar productos
+    function search() {
+    const searchInput = document.getElementById('search');
+    const query = searchInput.value;
+    fetch(`http://localhost:3000/products/search?query=${query}`)
+        .then(response => response.json())
+        .then(products => {
+        const productList = document.getElementById('product-list');
+        productList.innerHTML = '';
+        for (let product of products) {
+            const productDiv = document.createElement('div');
+            productDiv.innerHTML = `
+            <h2>${product.name}</h2>
+            <p>${product.description}</p>
+            <p>${product.price}</p>
+            <button onclick="addToCart('${product._id}')">Añadir al carrito</button>
+            `;
+            productList.appendChild(productDiv);
+        }
+        });
+    }
+
+    // Función para añadir un producto al carrito
+    function addToCart(productId) {
+    fetch('http://localhost:3000/cart', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId }),
+    })
+    .then(response => response.json())
+    .then(product => {
+        const cartDiv = document.getElementById('cart');
+        const productDiv = document.createElement('div');
+        productDiv.id = `cart-item-${product._id}`;
+        productDiv.innerHTML = `
+        <h2>${product.name}</h2>
+        <p>${product.description}</p>
+        <p>${product.price}</p>
+        <button onclick="removeFromCart('${product._id}')">Eliminar del carrito</button>
+        `;
+        cartDiv.appendChild(productDiv);
+    });
+    }
+
+    // Función para eliminar un producto del carrito
+    function removeFromCart(productId) {
+    fetch(`http://localhost:3000/cart/${productId}`, {
+        method: 'DELETE',
+    })
+    .then(response => response.json())
+    .then(() => {
+        const productDiv = document.getElementById(`cart-item-${productId}`);
+        productDiv.remove();
+    });
+    }
+
+    </script>
+  </body>
+</html>
